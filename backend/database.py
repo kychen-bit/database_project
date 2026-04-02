@@ -5,8 +5,26 @@ from typing import Any, Iterable
 import pyodbc
 
 
+def _resolve_driver() -> str:
+    env_driver = os.getenv("DB_DRIVER")
+    if env_driver:
+        return env_driver
+
+    installed = set(pyodbc.drivers())
+    preferred = [
+        "ODBC Driver 18 for SQL Server",
+        "ODBC Driver 17 for SQL Server",
+        "SQL Server",
+    ]
+    for driver in preferred:
+        if driver in installed:
+            return driver
+
+    return "SQL Server"
+
+
 def _build_connection_string() -> str:
-    driver = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
+    driver = _resolve_driver()
     server = os.getenv("DB_SERVER", "localhost")
     database = os.getenv("DB_DATABASE", "AnimalRescueDB")
     username = os.getenv("DB_USERNAME")
